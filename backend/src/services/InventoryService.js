@@ -9,26 +9,28 @@ class InventoryService {
   /**
    * Get all inventory items with filters and pagination
    */
-  async getAllItems(filters = {}, options = {}) {
+  async getAllItems(filters = {}, options = {}, userId) {
+    const baseQuery = { createdBy: userId };
+
     // Handle search
     if (filters.search) {
-      return await InventoryRepository.search(filters.search, options);
+      return await InventoryRepository.search(filters.search, baseQuery, options);
     }
 
     // Handle category filter
     if (filters.category) {
-      return await InventoryRepository.findByCategory(filters.category, options);
+      return await InventoryRepository.findByCategory(filters.category, baseQuery, options);
     }
 
     // Default: get all items
-    return await InventoryRepository.findAll({}, options);
+    return await InventoryRepository.findAll(baseQuery, options);
   }
 
   /**
    * Get single inventory item by ID
    */
-  async getItemById(id) {
-    const item = await InventoryRepository.findById(id, 'createdBy');
+  async getItemById(id, userId) {
+    const item = await InventoryRepository.findOne({ _id: id, createdBy: userId }, 'createdBy');
 
     if (!item) {
       throw new Error('Inventory item not found');
@@ -53,9 +55,9 @@ class InventoryService {
   /**
    * Update inventory item
    */
-  async updateItem(id, updateData) {
-    // Check if item exists
-    const existingItem = await InventoryRepository.findById(id);
+  async updateItem(id, updateData, userId) {
+    // Check if item exists and belongs to user
+    const existingItem = await InventoryRepository.findOne({ _id: id, createdBy: userId });
 
     if (!existingItem) {
       throw new Error('Inventory item not found');
@@ -78,9 +80,9 @@ class InventoryService {
   /**
    * Delete inventory item
    */
-  async deleteItem(id) {
-    // Check if item exists
-    const item = await InventoryRepository.findById(id);
+  async deleteItem(id, userId) {
+    // Check if item exists and belongs to user
+    const item = await InventoryRepository.findOne({ _id: id, createdBy: userId });
 
     if (!item) {
       throw new Error('Inventory item not found');
@@ -95,14 +97,14 @@ class InventoryService {
   /**
    * Update item quantity
    */
-  async updateQuantity(id, quantity) {
+  async updateQuantity(id, quantity, userId) {
     // Validate quantity
     if (quantity < 0) {
       throw new Error('Quantity cannot be negative');
     }
 
-    // Check if item exists
-    const item = await InventoryRepository.findById(id);
+    // Check if item exists and belongs to user
+    const item = await InventoryRepository.findOne({ _id: id, createdBy: userId });
 
     if (!item) {
       throw new Error('Inventory item not found');
@@ -117,16 +119,16 @@ class InventoryService {
   /**
    * Get low stock items
    */
-  async getLowStockItems(options = {}) {
-    return await InventoryRepository.findLowStock(options);
+  async getLowStockItems(userId, options = {}) {
+    return await InventoryRepository.findLowStock({ createdBy: userId }, options);
   }
 
   /**
    * Get inventory statistics
    */
-  async getStatistics() {
-    const allItems = await InventoryRepository.findAll();
-    const lowStockResult = await InventoryRepository.findLowStock();
+  async getStatistics(userId) {
+    const allItems = await InventoryRepository.findAll({ createdBy: userId });
+    const lowStockResult = await InventoryRepository.findLowStock({ createdBy: userId });
 
     const totalItems = allItems.pagination.total;
     const totalValue = allItems.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);

@@ -25,7 +25,7 @@ export const getAllItems = asyncHandler(async (req, res) => {
     sort: sort || '-createdAt',
   };
 
-  const result = await InventoryService.getAllItems(filters, options);
+  const result = await InventoryService.getAllItems(filters, options, req.user._id);
 
   res.status(200).json({
     success: true,
@@ -40,7 +40,7 @@ export const getAllItems = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const getItemById = asyncHandler(async (req, res) => {
-  const item = await InventoryService.getItemById(req.params.id);
+  const item = await InventoryService.getItemById(req.params.id, req.user._id);
 
   res.status(200).json({
     success: true,
@@ -69,7 +69,7 @@ export const createItem = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const updateItem = asyncHandler(async (req, res) => {
-  const item = await InventoryService.updateItem(req.params.id, req.body);
+  const item = await InventoryService.updateItem(req.params.id, req.body, req.user._id);
 
   res.status(200).json({
     success: true,
@@ -84,7 +84,7 @@ export const updateItem = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const deleteItem = asyncHandler(async (req, res) => {
-  const result = await InventoryService.deleteItem(req.params.id);
+  const result = await InventoryService.deleteItem(req.params.id, req.user._id);
 
   res.status(200).json({
     success: true,
@@ -100,7 +100,7 @@ export const deleteItem = asyncHandler(async (req, res) => {
  */
 export const updateQuantity = asyncHandler(async (req, res) => {
   const { quantity } = req.body;
-  const item = await InventoryService.updateQuantity(req.params.id, quantity);
+  const item = await InventoryService.updateQuantity(req.params.id, quantity, req.user._id);
 
   res.status(200).json({
     success: true,
@@ -115,7 +115,7 @@ export const updateQuantity = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const getLowStockItems = asyncHandler(async (req, res) => {
-  const result = await InventoryService.getLowStockItems();
+  const result = await InventoryService.getLowStockItems(req.user._id);
 
   res.status(200).json({
     success: true,
@@ -130,7 +130,7 @@ export const getLowStockItems = asyncHandler(async (req, res) => {
  * @access  Private
  */
 export const getStatistics = asyncHandler(async (req, res) => {
-  const stats = await InventoryService.getStatistics();
+  const stats = await InventoryService.getStatistics(req.user._id);
 
   res.status(200).json({
     success: true,

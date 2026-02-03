@@ -14,15 +14,15 @@ class InventoryRepository extends BaseRepository {
   /**
    * Find items by category
    */
-  async findByCategory(category, options = {}) {
-    return await this.findAll({ category }, options);
+  async findByCategory(category, baseFilters = {}, options = {}) {
+    return await this.findAll({ ...baseFilters, category }, options);
   }
 
   /**
    * Find low stock items
    */
-  async findLowStock(options = {}) {
-    const items = await this.model.find().sort(options.sort || '-createdAt');
+  async findLowStock(filters = {}, options = {}) {
+    const items = await this.model.find(filters).sort(options.sort || '-createdAt');
     
     // Filter items where quantity <= lowStockThreshold
     const lowStockItems = items.filter(item => item.quantity <= item.lowStockThreshold);
@@ -36,9 +36,10 @@ class InventoryRepository extends BaseRepository {
   /**
    * Search items by name or SKU
    */
-  async search(searchTerm, options = {}) {
+  async search(searchTerm, baseFilters = {}, options = {}) {
     const regex = new RegExp(searchTerm, 'i');
     const filters = {
+      ...baseFilters,
       $or: [
         { name: regex },
         { sku: regex },
